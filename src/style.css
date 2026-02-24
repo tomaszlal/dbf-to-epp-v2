@@ -7,6 +7,13 @@ body {
   padding: 50px;
   background-color: #f9f9f9;
 }
+
+h2 {
+  margin-bottom: 1rem;
+  color: #333;
+  text-align: center;
+}
+
 .card {
   background: white;
   padding: 2rem;

@@ -1,35 +1,54 @@
-const form = document.querySelector<HTMLFormElement>('#upload-form')!;
-const fileInput = document.querySelector<HTMLInputElement>('#file-input')!;
-const fileInfo = document.querySelector<HTMLDivElement>('#file-info')!;
+import { ToJsonTools } from "./ToJsonTools";
 
+const formUpload = document.querySelector<HTMLFormElement>('#upload-form')!;
+const formMerge = document.querySelector<HTMLFormElement>('#form-merge')!;
+const fileInputGoods = document.querySelector<HTMLInputElement>('#file-input-goods')!;
+const fileInputNames = document.querySelector<HTMLInputElement>('#file-input-names')!;
+const fileInfoGoods = document.querySelector<HTMLDivElement>('#file-info-goods')!;
+const fileInfoNames = document.querySelector<HTMLDivElement>('#file-info-names')!;
+const jsonTools = new ToJsonTools();
 
-fileInput.addEventListener('change', () => {
-  const files = fileInput.files;
+fileInputGoods.addEventListener('change', () => {
+  const files = fileInputGoods.files;
 
   if (files && files.length > 0) {
     const file = files[0];
-    fileInfo.textContent = `Plik: ${file.name} | Rozmiar: ${(file.size / 1024).toFixed(1)} KB`;
+    fileInfoGoods.textContent = `Plik: ${file.name} | Rozmiar: ${(file.size / 1024).toFixed(1)} KB`;
   } else {
-    fileInfo.textContent = "Nie wybrano pliku";
+    fileInfoGoods.textContent = "Nie wybrano pliku";
   }
 });
 
-form.addEventListener('submit', (e: Event) => {
+fileInputNames.addEventListener('change', () => {
+  const files = fileInputNames.files;
+
+  if (files && files.length > 0) {
+    const file = files[0];
+    fileInfoNames.textContent = `Plik: ${file.name} | Rozmiar: ${(file.size / 1024).toFixed(1)} KB`;
+  } else {
+    fileInfoNames.textContent = "Nie wybrano pliku";
+  }
+});
+
+
+
+formUpload.addEventListener('submit', (e: Event) => {
   e.preventDefault();
 
-  const selectedFile = fileInput.files?.[0];
+  const selectedFileGoods = fileInputGoods.files?.[0];
+  const selectedFileNames = fileInputNames.files?.[0];
 
-  if (!selectedFile) {
-    alert('Najpierw wybierz plik!');
+  if (!selectedFileGoods || !selectedFileNames) {
+    alert('Najpierw wybierz oba pliki!');
     return;
   }
-  
-  selectedFile.text().then(content => {
-    console.log('Zawartość pliku:', content);
-    alert('Plik został wczytany. Sprawdź konsolę, aby zobaczyć jego zawartość.');
-  }).catch(error => {
-    console.error('Błąd podczas odczytu pliku:', error);
-    alert('Wystąpił błąd podczas odczytu pliku.');
-  }); 
 
+  jsonTools.addGoods(selectedFileGoods);
+  jsonTools.addNames(selectedFileNames);
+});
+
+formMerge.addEventListener('submit', (e: Event) => {
+  e.preventDefault();
+
+  jsonTools.mergeGoodsAndNames();
 });
