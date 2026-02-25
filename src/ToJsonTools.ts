@@ -24,7 +24,22 @@ export class ToJsonTools {
     }
 
     public mergeGoodsAndNames() {
-      console.log('Merging goods and names...');
+     
+        
+        this.goods?.forEach((good) => {
+
+            if (good.Nrid ==="024540") {
+                console.log('Good with Nrid 024540:', good);
+            }
+
+
+            // const matchingName = this.names?.find(name => name.Nrid === good.Nrid);
+        });
+
+        debugger;
+
+
+
     }
 
     private getGoods(blocksOfGoods: Array<string>): Array<Item> {
