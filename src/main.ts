@@ -6,6 +6,9 @@ const fileInputGoods = document.querySelector<HTMLInputElement>('#file-input-goo
 const fileInputNames = document.querySelector<HTMLInputElement>('#file-input-names')!;
 const fileInfoGoods = document.querySelector<HTMLDivElement>('#file-info-goods')!;
 const fileInfoNames = document.querySelector<HTMLDivElement>('#file-info-names')!;
+const searchInput = document.querySelector<HTMLInputElement>('#search-symbol');
+const resultsDiv = document.querySelector<HTMLDivElement>('#search-results');
+const formSearch = document.querySelector<HTMLFormElement>('#form-search');
 const jsonTools = new ToJsonTools();
 
 fileInputGoods.addEventListener('change', () => {
@@ -51,4 +54,30 @@ formMerge.addEventListener('submit', (e: Event) => {
   e.preventDefault();
 
   jsonTools.mergeGoodsAndNames();
+});
+
+formSearch?.addEventListener('submit', (e: Event) => {
+  e.preventDefault();
+
+  const value = searchInput?.value.trim();
+  if (!value) return;
+
+  const results = jsonTools.findGoodsBySymbol(value);
+
+  if (results.length > 0) {
+    // Mapujemy wyniki na listę elementów HTML
+    const htmlResults = results.map((item: any) => `
+      <div class="result-item" style="border-bottom: 1px solid #eee; padding: 8px 0;">
+        <strong>Symbol:</strong> ${item.Symbol} <br>
+        <small>${JSON.stringify(item)}</small>
+      </div>
+    `).join('');
+
+    resultsDiv!.innerHTML = `
+      <p>Znaleziono dopasowań: <strong>${results.length}</strong></p>
+      <div class="results-list">${htmlResults}</div>
+    `;
+  } else {
+    resultsDiv!.innerHTML = `<p style="color: red;">Nie znaleziono towarów pasujących do: ${value}</p>`;
+  }
 });
