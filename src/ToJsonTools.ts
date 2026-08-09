@@ -5,13 +5,14 @@ export class ToJsonTools {
     private goods: Array<Item> | undefined;
     private names: Array<Item> | undefined;
     private mergedGoodsData: Array<Item> | undefined;
+    private contractors: Array<Item> | undefined;
 
     public async addGoods(selectedFile: File) {
         const goodsContent = await this.addContent(selectedFile);
         const blocksOfGoods = goodsContent.trim().split(/\n\s*\n/);
 
         console.log(`Found ${blocksOfGoods.length} blocks.`);
-        this.goods = this.getGoods(blocksOfGoods);
+        this.goods = this.getDataFromDbf(blocksOfGoods);
         console.log('Parsed goods:', this.goods);
     }
 
@@ -20,8 +21,17 @@ export class ToJsonTools {
         const blocksOfNames = namesContent.trim().split(/\n\s*\n/);
 
         console.log(`Found ${blocksOfNames.length} blocks.`);
-        this.names = this.getGoods(blocksOfNames);
+        this.names = this.getDataFromDbf(blocksOfNames);
         console.log('Parsed names:', this.names);
+    }
+
+    public async addContractors(selectedFile: File) {
+        const contractorsContent = await this.addContent(selectedFile);
+        const blocksOfContractors = contractorsContent.trim().split(/\n\s*\n/);
+
+        console.log(`Found ${blocksOfContractors.length} blocks.`);
+        this.contractors = this.getDataFromDbf(blocksOfContractors);
+        console.log('Parsed contractors:', this.contractors);
     }
 
     public mergeGoodsAndNames() {
@@ -76,6 +86,26 @@ export class ToJsonTools {
         });
         console.log(`Processed ${i} names in total.`);
         console.log('Merged goods data:', this.mergedGoodsData);
+        this.saveMergedDataToJsonBrowser();
+    }
+
+    public saveMergedDataToJsonBrowser(fileName: string = 'mergedGoodsData.json'): void {
+        if (!this.mergedGoodsData || this.mergedGoodsData.length === 0) {
+            console.warn('Brak danych w mergedGoodsData do pobrania.');
+            return;
+        }
+
+        const jsonData = JSON.stringify(this.mergedGoodsData, null, 2);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+
+        URL.revokeObjectURL(url);
+        console.log(`Wygenerowano pobieranie pliku: ${fileName}`);
     }
 
     findGoodsBySymbol(symbol: string) {
@@ -89,7 +119,7 @@ export class ToJsonTools {
         );
     }
 
-    private getGoods(blocksOfGoods: Array<string>): Array<Item> {
+    private getDataFromDbf(blocksOfGoods: Array<string>): Array<Item> {
         return blocksOfGoods.map(block => {
             const item: Item = {};
             const lines = block.split('\n');
