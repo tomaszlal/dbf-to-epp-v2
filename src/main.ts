@@ -1,4 +1,4 @@
-import { ToJsonTools } from "./ToJsonTools";
+import { JsonTools } from "./JsonTools";
 
 const formUpload = document.querySelector<HTMLFormElement>('#upload-form')!;
 const formMerge = document.querySelector<HTMLFormElement>('#form-merge')!;
@@ -7,11 +7,11 @@ const fileInputNames = document.querySelector<HTMLInputElement>('#file-input-nam
 const fileInputContractors = document.querySelector<HTMLInputElement>('#file-input-contractors')!;
 const fileInfoGoods = document.querySelector<HTMLDivElement>('#file-info-goods')!;
 const fileInfoNames = document.querySelector<HTMLDivElement>('#file-info-names')!;
-const fileInfoContractors = document.querySelector<HTMLDivElement>('#file-info-contractors')!;
+const fileUploadContractors = document.querySelector<HTMLDivElement>('#upload-form-contractors')!;
 const searchInput = document.querySelector<HTMLInputElement>('#search-symbol');
 const resultsDiv = document.querySelector<HTMLDivElement>('#search-results');
 const formSearch = document.querySelector<HTMLFormElement>('#form-search');
-const jsonTools = new ToJsonTools();
+const jsonTools = new JsonTools();
 
 fileInputGoods.addEventListener('change', () => {
   const files = fileInputGoods.files;
@@ -50,6 +50,19 @@ formUpload.addEventListener('submit', (e: Event) => {
 
   jsonTools.addGoods(selectedFileGoods);
   jsonTools.addNames(selectedFileNames);
+});
+
+fileUploadContractors.addEventListener('submit', (e: Event) => {
+  e.preventDefault();
+
+  const selectedFileContractors = fileInputContractors.files?.[0];
+
+  if (!selectedFileContractors) {
+    alert('Najpierw wybierz plik z kontrahentami!');
+    return;
+  }
+
+  jsonTools.addContractors(selectedFileContractors);
 });
 
 formMerge.addEventListener('submit', (e: Event) => {

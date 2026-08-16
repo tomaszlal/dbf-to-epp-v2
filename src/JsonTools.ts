@@ -1,11 +1,18 @@
+import { JsonToEpp } from "./JsonToEpp";
 import type { Item } from "./Types";
 
-export class ToJsonTools {
+export class JsonTools {
 
     private goods: Array<Item> | undefined;
     private names: Array<Item> | undefined;
     private mergedGoodsData: Array<Item> | undefined;
     private contractors: Array<Item> | undefined;
+    private jsonToEpp: JsonToEpp | undefined;
+
+    constructor() {
+        this.jsonToEpp = new JsonToEpp();
+    }
+
 
     public async addGoods(selectedFile: File) {
         const goodsContent = await this.addContent(selectedFile);
@@ -32,6 +39,10 @@ export class ToJsonTools {
         console.log(`Found ${blocksOfContractors.length} blocks.`);
         this.contractors = this.getDataFromDbf(blocksOfContractors);
         console.log('Parsed contractors:', this.contractors);
+
+
+        this.jsonToEpp?.convertContractorsToEpp(this.contractors);
+        
     }
 
     public mergeGoodsAndNames() {
