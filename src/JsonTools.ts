@@ -1,4 +1,5 @@
 import { JsonToEpp } from "./JsonToEpp";
+import { MazoviaConverter } from "./MazoviaConverter";
 import type { Item } from "./Types";
 
 export class JsonTools {
@@ -33,20 +34,20 @@ export class JsonTools {
     }
 
     public async addContractors(selectedFile: File) {
-        const contractorsContent = await this.addContent(selectedFile);
+        // MazoviaConverter.convertFileToUtf8 is a static method
+        const convertedFile = await MazoviaConverter.convertFileToUtf8(selectedFile);
+
+        const contractorsContent = await this.addContent(convertedFile);
         const blocksOfContractors = contractorsContent.trim().split(/\n\s*\n/);
 
         console.log(`Found ${blocksOfContractors.length} blocks.`);
         this.contractors = this.getDataFromDbf(blocksOfContractors);
         console.log('Parsed contractors:', this.contractors);
 
-
         this.jsonToEpp?.convertContractorsToEpp(this.contractors);
-        
     }
 
     public mergeGoodsAndNames() {
-
         const nrId: string = "004819";
         const nameOfGood: string = "OLEJ TRAWOL 1LX";
 
@@ -71,20 +72,15 @@ export class JsonTools {
         this.mergedGoodsData = [];
         let i = 0;
         this.names?.forEach(name => {
-
             const matchingGoods = this.goods?.filter(good => good.Nrid === name.Nrid) || [];
             if (matchingGoods.length > 0) {
                 const newItem: Item = { ...matchingGoods[0], ...name };
-
                 if (matchingGoods && matchingGoods.length > 1) {
                     for (let i = 1; i < matchingGoods.length; i++) {
                         const good = matchingGoods[i];
                         const lastStan_a = newItem.Stan_a || 0;
                         Object.assign(newItem, good);
                         newItem.Stan_a = lastStan_a + (good.Stan_a || 0);
-
-
-
                     }
                 }
                 this.mergedGoodsData?.push(newItem);
@@ -121,9 +117,7 @@ export class JsonTools {
 
     findGoodsBySymbol(symbol: string) {
         if (!this.mergedGoodsData) return [];
-
         const searchPhrase = symbol.toLowerCase();
-
         // Zwraca wszystkie elementy, które zawierają wpisany ciąg w Symbolu
         return this.mergedGoodsData.filter((item: any) =>
             item.Symbol?.toString().toLowerCase().includes(searchPhrase)
