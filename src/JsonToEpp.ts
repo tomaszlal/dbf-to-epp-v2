@@ -3,7 +3,7 @@ import type { Item } from "./Types";
 export class JsonToEpp {
 
     private contractors: Array<Item> | undefined;
-    private goods: Array<Item> | undefined;
+    private mergedGoods: Array<Item> | undefined;
 
 
     public convertContractorsToEpp(contractorsData: Array<Item>) {
@@ -95,8 +95,8 @@ export class JsonToEpp {
         URL.revokeObjectURL(url);
     }
 
-    public convertGoodsToEpp(goodsData: Array<Item>) {
-        this.goods = goodsData;
+    public convertMergedGoodsToEpp(mergedGoodsData: Array<Item>) {
+        this.mergedGoods = mergedGoodsData;
         const lines: string[] = [];
 
         // Sekcja nagłówkowa  "1.05",3,1250,,,,,,,,,,,,,0,,,,20260122170115,,"PL","PL0000000000",1
@@ -108,11 +108,29 @@ export class JsonToEpp {
         lines.push("");
         lines.push("[ZAWARTOSC]");
 
-        for (const good of this.goods) {
-            const typ = "0"; //typ dokumentu: "FZ"  
-            const kod = good.Kod ? `"${good.Kod}"` : "";
+        console.log('Merged goods data:', this.mergedGoods);
 
-            lines.push(`${typ},${kod}`);
+        for (const mergedGood of this.mergedGoods) {
+            const typ = 1; //typ towaru: 1 = towar, 2 = usługa,
+            // const typ = mergedGood.Rodzaj === "T" ? 1 : 2; //typ towaru: 1 = towar, 2 = usługa,
+            // if (typ === 2) console.log(`Processing merged good: ${mergedGood.Symbol} - ${mergedGood.Nrid}`);
+            const kod = mergedGood.Symbol ? `"${mergedGood.Symbol}"` : "";
+            const kodTowProducenta = "";
+            const kodKreskowy = "";
+            const nazwa = mergedGood.Opis ? `"${mergedGood.Opis}"` : "";
+            const opis: string = nazwa;
+            const nazwaFisk: string = nazwa;
+            const symbolSWW = `""`;
+            const symbolPKWIU = mergedGood.Pkwiu ? `"${mergedGood.Pkwiu}"` : `""`;
+            const jednMiary = mergedGood.Jm ? `"${mergedGood.Jm}"` : `""`;
+            const symbVat = mergedGood.Pvat ? `"${mergedGood.Pvat}"` : `""`;
+            const stawkaVat = Number(mergedGood.Pvat).toFixed(4);
+
+
+
+            lines.push(`${typ},${kod},${kodTowProducenta},${kodKreskowy},${nazwa},${opis},${nazwaFisk},${symbolSWW},${symbolPKWIU},${jednMiary},${symbVat},${stawkaVat},${symbVat},${stawkaVat}`);
         }
+
+        console.log('Merged goods data by lines:', lines);
     }
 }

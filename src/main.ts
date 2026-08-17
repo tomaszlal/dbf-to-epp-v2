@@ -1,3 +1,4 @@
+import { JsonToEpp } from "./JsonToEpp";
 import { JsonTools } from "./JsonTools";
 
 const formUpload = document.querySelector<HTMLFormElement>('#upload-form')!;
@@ -11,7 +12,13 @@ const fileUploadContractors = document.querySelector<HTMLDivElement>('#upload-fo
 const searchInput = document.querySelector<HTMLInputElement>('#search-symbol');
 const resultsDiv = document.querySelector<HTMLDivElement>('#search-results');
 const formSearch = document.querySelector<HTMLFormElement>('#form-search');
+const fileUploadMergedGoods = document.getElementById('upload-form-merged-goods') as HTMLFormElement;
+const fileInputMergedGoods = document.getElementById('file-input-merged-goods') as HTMLInputElement;
 const jsonTools = new JsonTools();
+const jsonToEpp = new JsonToEpp();
+
+
+
 
 fileInputGoods.addEventListener('change', () => {
   const files = fileInputGoods.files;
@@ -64,6 +71,30 @@ fileUploadContractors.addEventListener('submit', (e: Event) => {
 
   jsonTools.addContractors(selectedFileContractors);
 });
+
+fileUploadMergedGoods.addEventListener('submit', async (e: Event) => {
+  e.preventDefault();
+
+  const selectedFileMergedGoods = fileInputMergedGoods.files?.[0];
+
+  if (!selectedFileMergedGoods) {
+    alert('Najpierw wybierz plik JSON z połączonymi towarami (merged goods)!');
+    return;
+  }
+
+  try {
+    const jsonText = await selectedFileMergedGoods.text();
+    const mergedGoodsData = JSON.parse(jsonText);
+
+    // Wywołanie metody konwersji do EPP dla merged goods
+    jsonToEpp.convertMergedGoodsToEpp(mergedGoodsData);
+
+  } catch (error) {
+    console.error('Błąd podczas odczytu pliku JSON:', error);
+    alert('Nie udało się przetworzyć pliku JSON!');
+  }
+});
+
 
 formMerge.addEventListener('submit', (e: Event) => {
   e.preventDefault();
