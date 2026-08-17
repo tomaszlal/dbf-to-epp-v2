@@ -1,0 +1,9 @@
+python3 -c "
+with open('kontrahenci.epp', 'r', encoding='utf-8') as f:
+    content = f.read()
+with open('kontrahenci_win1250.epp', 'w', encoding='windows-1250', errors='replace') as f:
+    f.write(content)
+"
+
+
+//run in terminal

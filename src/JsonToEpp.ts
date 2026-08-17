@@ -3,6 +3,7 @@ import type { Item } from "./Types";
 export class JsonToEpp {
 
     private contractors: Array<Item> | undefined;
+    private goods: Array<Item> | undefined;
 
 
     public convertContractorsToEpp(contractorsData: Array<Item>) {
@@ -21,7 +22,7 @@ export class JsonToEpp {
         for (const contractor of this.contractors) {
             // Generowanie rekordów kontrahentów (sekcja [ZAWARTOSC] w [KONTRAHENCI])
             const typ = "0";//typ kontrahenta: 0 = odbiorca/dostawca, 1 = odbiorca, 2 = dostawca
-            const kod = contractor.Nrkontr ? `"${contractor.Nrkontr}"` : "";//kod identyfikacyjny kontrahenta (Symbol/Kod) - unikalny identyfikator kontrahenta w systemie Subiekt GT
+            const kod = contractor.Kontrahent ? `"${contractor.Kontrahent}"` : "";//kod identyfikacyjny kontrahenta (Symbol/Kod) - unikalny identyfikator kontrahenta w systemie Subiekt GT
             const nazwaSkrocona = contractor.Kontrahent ? `"${contractor.Kontrahent}"` : "";//nazwa skrócona kontrahenta (Nazwa 1) - krótka nazwa kontrahenta, np. skrót firmy
             const nazwaPelna = this.getFullName(contractor);//nazwa pełna kontrahenta (Nazwa 2) - pełna nazwa kontrahenta, np. pełna nazwa firmy
             const miasto = contractor.Miasto ? `"${contractor.Miasto}"` : "";//miasto - miejscowość kontrahenta
@@ -92,5 +93,26 @@ export class JsonToEpp {
         // Sprzątanie po pobraniu
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    }
+
+    public convertGoodsToEpp(goodsData: Array<Item>) {
+        this.goods = goodsData;
+        const lines: string[] = [];
+
+        // Sekcja nagłówkowa  "1.05",3,1250,,,,,,,,,,,,,0,,,,20260122170115,,"PL","PL0000000000",1
+        lines.push("[INFO]");
+        lines.push(`"1.05",3,1250,,,,,,,,,,,,,0,,,,20260122170115,,"PL","PL0000000000",1`);
+        lines.push("");
+        lines.push("[NAGLOWEK]");
+        lines.push(`"TOWARY"`);
+        lines.push("");
+        lines.push("[ZAWARTOSC]");
+
+        for (const good of this.goods) {
+            const typ = "0"; //typ dokumentu: "FZ"  
+            const kod = good.Kod ? `"${good.Kod}"` : "";
+
+            lines.push(`${typ},${kod}`);
+        }
     }
 }
