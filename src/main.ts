@@ -14,6 +14,9 @@ const resultsDiv = document.querySelector<HTMLDivElement>('#search-results');
 const formSearch = document.querySelector<HTMLFormElement>('#form-search');
 const fileUploadMergedGoods = document.getElementById('upload-form-merged-goods') as HTMLFormElement;
 const fileInputMergedGoods = document.getElementById('file-input-merged-goods') as HTMLInputElement;
+const pwForm = document.getElementById('upload-form-pw') as HTMLFormElement;
+  const pwFileInput = document.getElementById('file-input-pw') as HTMLInputElement;
+
 const jsonTools = new JsonTools();
 const jsonToEpp = new JsonToEpp();
 
@@ -70,6 +73,30 @@ fileUploadContractors.addEventListener('submit', (e: Event) => {
   }
 
   jsonTools.addContractors(selectedFileContractors);
+});
+
+pwForm.addEventListener('submit', async (e: Event) => {
+  e.preventDefault();
+
+  const selectedFileMergedGoods = pwFileInput.files?.[0];
+
+  if (!selectedFileMergedGoods) {
+    alert('Najpierw wybierz plik JSON z połączonymi towarami (merged goods)!');
+    return;
+  }
+
+  try {
+    const jsonText = await selectedFileMergedGoods.text();
+    const mergedGoodsData = JSON.parse(jsonText);
+
+    // Wywołanie metody konwersji do EPP dla merged goods
+    jsonToEpp.generatePWToEPP(mergedGoodsData);
+    // jsonToEpp.convertMergedGoodsToEpp(mergedGoodsData);
+
+  } catch (error) {
+    console.error('Błąd podczas odczytu pliku JSON:', error);
+    alert('Nie udało się przetworzyć pliku JSON!');
+  }
 });
 
 fileUploadMergedGoods.addEventListener('submit', async (e: Event) => {

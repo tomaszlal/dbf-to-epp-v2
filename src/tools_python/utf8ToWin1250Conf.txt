@@ -5,5 +5,29 @@ with open('kontrahenci_win1250.epp', 'w', encoding='windows-1250', errors='repla
     f.write(content)
 "
 
+python3 -c "
+with open('towary.epp', 'r', encoding='utf-8') as f:
+    content = f.read()
+with open('towary_win1250.epp', 'w', encoding='windows-1250', errors='replace') as f:
+    f.write(content)
+"
+
+utf-8 to win1250 converter use in current directory:
+python3 konwerter_epp.py
+
+
+python3 -c "
+with open('towary_czesc_1.epp', 'r', encoding='utf-8') as f:
+    content = f.read()
+with open('towary_czesc_1_win1250.epp', 'w', encoding='windows-1250', errors='replace') as f:
+    f.write(content)
+"
+
+python3 -c "
+with open('pw.epp', 'r', encoding='utf-8') as f:
+    content = f.read()
+with open('pw_win1250.epp', 'w', encoding='windows-1250', errors='replace') as f:
+    f.write(content)
+"
 
 //run in terminal

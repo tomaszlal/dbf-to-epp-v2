@@ -21,11 +21,24 @@ h2 {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid #eee;
 }
+
+.frame {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.frame > div {
+  /* Minimalna szerokość 200px, z możliwością rozciągania (flex-grow: 1) */
+  flex: 1 1 200px;
+}
+
 #file-info {
   margin: 10px 0;
   font-size: 0.85rem;
   color: #666;
 }
+
 button {
   background: #646cff;
   color: white;
@@ -34,6 +47,7 @@ button {
   border-radius: 4px;
   cursor: pointer;
 }
+
 button:hover {
   background: #535bf2;
 }
