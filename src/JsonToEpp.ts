@@ -230,8 +230,8 @@ export class JsonToEpp {
             const cenaBrutto = bruttoRounded.toFixed(4);
 
             // lines.push(`${kod},"Detaliczna",${cenaNetto},${cenaBrutto},10.0000,0.0000,0.0000`);
-
             // lines.push(`${kod},"Detaliczna",${cenaNetto},,,,`);
+            // "000187       SM","Detaliczna",5.0000,6.1500,5.0000,100.0000,5.0000
             lines.push(`${kod},"Detaliczna",${cenaNetto},${cenaBrutto},10.0000,100.0000,${cenaNetto}`);
         }
     }
@@ -252,67 +252,165 @@ export class JsonToEpp {
 
     public async generatePWToEPP(mergedGoodsData: Array<Item>) {
         this.mergedGoods = mergedGoodsData;
-        const lines: string[] = [];
+        const CHUNK_SIZE = 1000;
+        await this.selectTargetDirectory();  // Wywołanie funkcji wyboru katalogu
+        // Dzielimy tablicę na paczki po max 1000 elementów
+        for (let i = 0; i < mergedGoodsData.length; i += CHUNK_SIZE) {
+            const chunk = mergedGoodsData.slice(i, i + CHUNK_SIZE);
+            const chunkIndex = Math.floor(i / CHUNK_SIZE) + 1;
+            const totalChunks = Math.ceil(mergedGoodsData.length / CHUNK_SIZE);
+            const lines: string[] = [];
+            // 1. Sekcja INFO
+            lines.push(`[INFO]
+"1.11",3,1250,"Subiekt GT","SKLEP_BRODA","sklep_broda_test","Sklep Broda test",,,,"6550011383","MAG","Główny","Magazyn główny",,0,,,"Szef",20260823132923,"Polska","PL","6550011383",1
 
-        lines.push("[INFO]");
-        lines.push(`"1.11",3,1250,"Subiekt GT","SKLEP_BRODA","sklep_broda_test","Sklep Broda test",,,,"6550011383","MAG","Główny","Magazyn główny",,0,,,"Szef",20260819165547,"Polska","PL","6550011383",1`);
-        lines.push("");
-        lines.push("[NAGLOWEK]");
-        lines.push(`"PW",1,0,1,,,"2/2026",,,,,,,,,,,,"Magazyn","Dokument magazynowy",,20260819000000,20260819000000,,3,1,"Cena ostatniej dost.",0.0000,0.0000,0.0000,0.0000,,0.0000,,20260819000000,0.0000,0.0000,0,0,0,0,";Szef","Szef",,0.0000,0.0000,"PLN",1.0000,,,,,0,0,0,,0.0000,,0.0000,,,0`);
-        lines.push("[ZAWARTOSC]");
+[NAGLOWEK]
+"PW",1,0,2,,,"2/2026",,,,,,,,,,,,"Magazyn","Dokument magazynowy",,20260819000000,20260819000000,,3,1,"Cena ostatniej dost.",0.0000,0.0000,0.0000,0.0000,,0.0000,,20260819000000,0.0000,0.0000,0,0,0,0,";Szef","Szef",,0.0000,0.0000,"PLN",1.0000,,,,,0,0,0,,0.0000,,0.0000,,,0
 
-        var counter = 0;
-        for (const mergedGood of this.mergedGoods) {
-            counter++;
-            const typ = 1; //typ towaru: 1 = towar, 2 = usługa,
-            const symbol = this.clearText(mergedGood.Symbol as string);
-            const kod = `"${symbol}"`;
-            const jm = (mergedGood.Jm?.toString())?.toLowerCase() ?? "";
-            const jednMiary = jm.includes("sz") ? `"szt."` : `"${jm}"`;
-            const ilosc = mergedGood.Stan_k1 ? Number(mergedGood.Stan_k1).toFixed(4) : "0.0000";
-            const vatValue = (Number(mergedGood.Pvat) === 22 ? 23 : Number(mergedGood.Pvat));
-            const cenaNetto = (Number(mergedGood.Cena_1) / (1 + vatValue / 100)).toFixed(4);
-            const cenaBrutto = Number(mergedGood.Cena_1).toFixed(4);
-            const stawkaVat = vatValue.toFixed(4);
-            const wartNetto = (Number(mergedGood.Cena_1) * Number(ilosc) / (1 + vatValue / 100)).toFixed(4);
-            const wartVat = (Number(wartNetto) * vatValue / 100).toFixed(4);
-            const wartBrutto = (Number(mergedGood.Cena_1) * Number(ilosc)).toFixed(4);
+[ZAWARTOSC]`);
+            // lines.push("[INFO]");
+            // lines.push(`"1.11",3,1250,"Subiekt GT","SKLEP_BRODA","sklep_broda_test","Sklep Broda test",,,,"6550011383","MAG","Główny","Magazyn główny",,0,,,"Szef",20260819165547,"Polska","PL","6550011383",1`);
+            // lines.push("");
 
-            lines.push(`${counter},${typ},${kod},0,0,0,0,0.0000,0.0000,${jednMiary},${ilosc},${ilosc},0.0000,${cenaNetto},${cenaBrutto},${stawkaVat},${wartNetto},${wartVat},${wartBrutto},${wartNetto},,`);
-        }
+            // // 2. Sekcja NAGLOWEK (dodano dynamiczny numer dokumentu, np. "2/1/2026")
+            // lines.push("[NAGLOWEK]");
+            // lines.push(`"PW",1,0,${chunkIndex},,,"${chunkIndex}/2026",,,,,,,,,,,,"Magazyn","Dokument magazynowy",,20260819000000,20260819000000,,3,1,"Cena ostatniej dost.",0.0000,0.0000,0.0000,0.0000,,0.0000,,20260819000000,0.0000,0.0000,0,0,0,0,";Szef","Szef",,0.0000,0.0000,"PLN",1.0000,,,,,0,0,0,,0.0000,,0.0000,,,0`);
+            // //  "PW", 1, 0, 2,,,"2/2026",,,,,,,,,,,,"Magazyn","Dokument magazynowy",,20260819000000,20260819000000,,3,1,"Cena ostatniej dost.",0.0000,0.0000,0.0000,0.0000,,0.0000,,20260819000000, 0.0000, 0.0000, 0, 0, 0, 0, ";Szef", "Szef",, 0.0000, 0.0000, "PLN", 1.0000,,,,, 0, 0, 0,, 0.0000,, 0.0000,,, 0
+            // lines.push("");
+            // lines.push("[ZAWARTOSC]");
+            // 3. Zawartość pozycji dokumentu (ZAWARTOSC)
+            let counter = 0;
+            for (const mergedGood of chunk) {
+                counter++;
+                const typ = 1;
+                const symbol = this.clearText(mergedGood.Symbol as string);
+                const kod = `"${symbol}"`;
+                const jm = (mergedGood.Jm?.toString())?.toLowerCase() ?? "";
+                const jednMiary = jm.includes("sz") ? `"szt."` : `"${jm}"`;
+                const val = Number(mergedGood.Stan_k1);
+                const ilosc = val > 0 ? val.toFixed(4) : "1.0000";
+                const vatValue = (Number(mergedGood.Pvat) === 22 ? 23 : Number(mergedGood.Pvat));
+                const stawkaVat = vatValue.toFixed(4);
 
-        for (const mergedGood of this.mergedGoods) {
-            const typ = 1; //typ towaru: 1 = towar, 2 = usługa,
-            const symbol = this.clearText(mergedGood.Symbol as string);
-            const kod = `"${symbol}"`;
-            const kodTowProducenta = "";
-            const kodKreskowy = "";
-            if (mergedGood.Opis === null || mergedGood.Opis === undefined) {
-                mergedGood.Opis = kod;
+                lines.push(`${counter},${typ},${kod},1,1,0,0,0.0000,0.0000,${jednMiary},${ilosc},${ilosc},0.0000,0.0000,0.0000,${stawkaVat},0.0000,0.0000,0.0000,0.0000,,`);
+                // 1,1,"000187       SM",1,1,0,0,0.0000,0.0000,"szt.",11.0000,11.0000,0.0000,0.0000,0.0000,23.0000,0.0000,0.0000,0.0000,0.0000,,
+                //1,1,"PASKL 3B3000  R",1,1,0,1,0.0000,0.0000,"szt.",1.0000,1.0000,0.0000,0.0000,0.0000,23.0000,0.0000,0.0000,0.0000,0.0000,,
             }
-            const descriptionOfGood = this.clearText(mergedGood.Opis as string);
-            const nazwa = descriptionOfGood ? `"${descriptionOfGood}"` : "";
-            const opisTowaru: string = nazwa; //opis towaru - opis towaru w systemie Subiekt GT
-            const nazwaFisk: string = nazwa; //nazwa fiskalna towaru - nazwa towaru używana w dokumentach fiskalnych
-            const symbolSWW = "";
-            const symbolPKWIU = mergedGood.Pkwiu ? `"${mergedGood.Pkwiu}"` : ``;
-            const jm = (mergedGood.Jm?.toString())?.toLowerCase() ?? "";
-            const jednMiary = jm.includes("sz") ? `"szt."` : `"${jm}"`;
-            // if (!jednMiary.includes("szt.")) console.log(`Jednostka miary is szt.: ${jednMiary} - ${mergedGood.Nrid}`);
-            const vatValue = (Number(mergedGood.Pvat) === 22 ? 23 : Number(mergedGood.Pvat));
-            const symbVat = `"${vatValue}"`;
-            const stawkaVat = vatValue.toFixed(4);
-            const cenaZNetto = `0.0000`;
-            const cenaWalutowa = `0.0000`;
+            // lines.push("");
+            // lines.push("[NAGLOWEK]");
+            // lines.push(`"TOWARY"`);
+            // lines.push("");
+            // lines.push("[ZAWARTOSC]");
 
-            lines.push(`${typ},${kod},${kodTowProducenta},${kodKreskowy},${nazwa},${opisTowaru},${nazwaFisk},${symbolSWW},${symbolPKWIU},${jednMiary},${symbVat},${stawkaVat},${symbVat},${stawkaVat},${cenaZNetto},${cenaWalutowa},,0,,,,0.0000,0,,,0,${jednMiary},0.0000,0.0000,,0,,0,0,,,,,,,,`);
+            // // 4. Kartoteki towarów w danej paczce
+            // for (const mergedGood of chunk) {
+            //     const typ = 1;
+            //     const symbol = this.clearText(mergedGood.Symbol as string);
+            //     const kod = `"${symbol}"`;
+            //     const kodTowProducenta = "";
+            //     const kodKreskowy = "";
+
+            //     if (mergedGood.Opis === null || mergedGood.Opis === undefined) {
+            //         mergedGood.Opis = kod;
+            //     }
+
+            //     const descriptionOfGood = this.clearText(mergedGood.Opis as string);
+            //     const nazwa = descriptionOfGood ? `"${descriptionOfGood}"` : "";
+            //     const opisTowaru: string = nazwa;
+            //     const nazwaFisk: string = nazwa;
+            //     const symbolSWW = "";
+            //     const symbolPKWIU = mergedGood.Pkwiu ? `"${mergedGood.Pkwiu}"` : ``;
+            //     const jm = (mergedGood.Jm?.toString())?.toLowerCase() ?? "";
+            //     const jednMiary = jm.includes("sz") ? `"szt."` : `"${jm}"`;
+            //     const vatValue = (Number(mergedGood.Pvat) === 22 ? 23 : Number(mergedGood.Pvat));
+            //     const symbVat = `"${vatValue}"`;
+            //     const stawkaVat = vatValue.toFixed(4);
+            //     const cenaZNetto = `0.0000`;
+            //     const cenaWalutowa = `0.0000`;
+
+            //     // lines.push(`${typ},${kod},${kodTowProducenta},${kodKreskowy},${nazwa},${opisTowaru},${nazwaFisk},${symbolSWW},${symbolPKWIU},${jednMiary},${symbVat},${stawkaVat},${symbVat},${stawkaVat},${cenaZNetto},${cenaWalutowa},,0,,,,0.0000,0,,,0,${jednMiary},0.0000,0.0000,,0,,0,0,,,,,,,,`);
+            //     lines.push(`${typ},${kod},${kodTowProducenta},${kodKreskowy},${nazwa},${opisTowaru},${nazwaFisk},${symbolSWW},${symbolPKWIU},${jednMiary},${symbVat},${stawkaVat},${symbVat},${stawkaVat},0.0000,0.0000,,0,,,,0.0000,0,,,0,${jednMiary},0.0000,0.0000,,0,,0,0,,,,,,,,`);
+            //     //  1,"000187       SM",,,"SREBRZANKA 0.2L","SREBRZANKA 0.2L","SREBRZANKA 0.2L",,,"szt.","23",23.0000,"23",23.0000,0.0000,0.0000,,0,,,,0.0000,0,,,0,"szt.",0.0000,0.0000,,0,,0,0,,,,,,,,
+            // }
+
+            // // Generowanie cen i pobieranie pliku dla bieżącej paczki
+            // await this.generatePricesInEPP(lines, chunk);
+
+            // Nazwa pliku generowana dynamicznie, np. pw_paczka_1_z_3.epp (lub po prostu pw_1.epp)
+            const fileName = totalChunks > 1 ? `pw_${chunkIndex}.epp` : 'pw.epp';
+
+            console.log(`Paczka ${chunkIndex}/${totalChunks}:`);
+            await this.saveSingleFile(lines, fileName);  // Zapis do wybranego katalogu
+            // this.downloadEPP(lines, fileName);
         }
-
-        await this.generatePricesInEPP(lines, mergedGoodsData);
-
-        console.log('Merged goods data by lines for PW:', lines);
-        this.downloadEPP(lines, 'pw.epp');
     }
+
+
+    //TODO: Old version widthout chunking, can be removed after testing
+    // public async generatePWToEPP(mergedGoodsData: Array<Item>) {
+    //     this.mergedGoods = mergedGoodsData;
+    //     const lines: string[] = [];
+
+    //     lines.push("[INFO]");
+    //     lines.push(`"1.11",3,1250,"Subiekt GT","SKLEP_BRODA","sklep_broda_test","Sklep Broda test",,,,"6550011383","MAG","Główny","Magazyn główny",,0,,,"Szef",20260819165547,"Polska","PL","6550011383",1`);
+    //     lines.push("");
+    //     lines.push("[NAGLOWEK]");
+    //     lines.push(`"PW",1,0,1,,,"2/2026",,,,,,,,,,,,"Magazyn","Dokument magazynowy",,20260819000000,20260819000000,,3,1,"Cena ostatniej dost.",0.0000,0.0000,0.0000,0.0000,,0.0000,,20260819000000,0.0000,0.0000,0,0,0,0,";Szef","Szef",,0.0000,0.0000,"PLN",1.0000,,,,,0,0,0,,0.0000,,0.0000,,,0`);
+    //     lines.push("[ZAWARTOSC]");
+
+    //     var counter = 0;
+    //     for (const mergedGood of this.mergedGoods) {
+    //         counter++;
+    //         const typ = 1; //typ towaru: 1 = towar, 2 = usługa,
+    //         const symbol = this.clearText(mergedGood.Symbol as string);
+    //         const kod = `"${symbol}"`;
+    //         const jm = (mergedGood.Jm?.toString())?.toLowerCase() ?? "";
+    //         const jednMiary = jm.includes("sz") ? `"szt."` : `"${jm}"`;
+    //         const ilosc = mergedGood.Stan_k1 ? Number(mergedGood.Stan_k1).toFixed(4) : "0.0000";
+    //         const vatValue = (Number(mergedGood.Pvat) === 22 ? 23 : Number(mergedGood.Pvat));
+    //         const cenaNetto = (Number(mergedGood.Cena_1) / (1 + vatValue / 100)).toFixed(4);
+    //         const cenaBrutto = Number(mergedGood.Cena_1).toFixed(4);
+    //         const stawkaVat = vatValue.toFixed(4);
+    //         const wartNetto = (Number(mergedGood.Cena_1) * Number(ilosc) / (1 + vatValue / 100)).toFixed(4);
+    //         const wartVat = (Number(wartNetto) * vatValue / 100).toFixed(4);
+    //         const wartBrutto = (Number(mergedGood.Cena_1) * Number(ilosc)).toFixed(4);
+
+    //         // lines.push(`${counter},${typ},${kod},1,1,0,1,0.0000,0.0000,${jednMiary},${ilosc},${ilosc},0.0000,${cenaNetto},${cenaBrutto},${stawkaVat},${wartNetto},${wartVat},${wartBrutto},${wartNetto},,`);
+    //         lines.push(`${counter},${typ},${kod},1,1,0,1,0.0000,0.0000,${jednMiary},${ilosc},${ilosc},0.0000,0.0000,0.0000,${stawkaVat},0.0000,0.0000,0.0000,0.0000,,`);
+    //     }
+
+    //     for (const mergedGood of this.mergedGoods) {
+    //         const typ = 1; //typ towaru: 1 = towar, 2 = usługa,
+    //         const symbol = this.clearText(mergedGood.Symbol as string);
+    //         const kod = `"${symbol}"`;
+    //         const kodTowProducenta = "";
+    //         const kodKreskowy = "";
+    //         if (mergedGood.Opis === null || mergedGood.Opis === undefined) {
+    //             mergedGood.Opis = kod;
+    //         }
+    //         const descriptionOfGood = this.clearText(mergedGood.Opis as string);
+    //         const nazwa = descriptionOfGood ? `"${descriptionOfGood}"` : "";
+    //         const opisTowaru: string = nazwa; //opis towaru - opis towaru w systemie Subiekt GT
+    //         const nazwaFisk: string = nazwa; //nazwa fiskalna towaru - nazwa towaru używana w dokumentach fiskalnych
+    //         const symbolSWW = "";
+    //         const symbolPKWIU = mergedGood.Pkwiu ? `"${mergedGood.Pkwiu}"` : ``;
+    //         const jm = (mergedGood.Jm?.toString())?.toLowerCase() ?? "";
+    //         const jednMiary = jm.includes("sz") ? `"szt."` : `"${jm}"`;
+    //         // if (!jednMiary.includes("szt.")) console.log(`Jednostka miary is szt.: ${jednMiary} - ${mergedGood.Nrid}`);
+    //         const vatValue = (Number(mergedGood.Pvat) === 22 ? 23 : Number(mergedGood.Pvat));
+    //         const symbVat = `"${vatValue}"`;
+    //         const stawkaVat = vatValue.toFixed(4);
+    //         const cenaZNetto = `0.0000`;
+    //         const cenaWalutowa = `0.0000`;
+
+    //         lines.push(`${typ},${kod},${kodTowProducenta},${kodKreskowy},${nazwa},${opisTowaru},${nazwaFisk},${symbolSWW},${symbolPKWIU},${jednMiary},${symbVat},${stawkaVat},${symbVat},${stawkaVat},${cenaZNetto},${cenaWalutowa},,0,,,,0.0000,0,,,0,${jednMiary},0.0000,0.0000,,0,,0,0,,,,,,,,`);
+    //     }
+
+    //     await this.generatePricesInEPP(lines, mergedGoodsData);
+
+    //     console.log('Merged goods data by lines for PW:', lines);
+    //     this.downloadEPP(lines, 'pw.epp');
+    // }
 
     //TODO: Old version widthout chunking, can be removed after testing
     // public convertMergedGoodsToEpp(mergedGoodsData: Array<Item>) {
